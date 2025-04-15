@@ -10,7 +10,7 @@ on:
 
 jobs:
   runner1:
-    runs-on: [self-hosted, run1]
+    runs-on: run1
     environment: DLG
     env:
       D_USER: ${{ secrets.DUSER }}
@@ -41,7 +41,7 @@ jobs:
           docker logout
 
   runner2:
-    runs-on: [self-hosted, run2]
+    runs-on: run2
     environment: DLG
     env:
       D_USER: ${{ secrets.DUSER }}
