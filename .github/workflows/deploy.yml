@@ -17,7 +17,7 @@ jobs:
       D_PASS: ${{ secrets.DPASS }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4 # Updated to latest version
+        uses: actions/checkout@v4
       - name: Build frontend image
         working-directory: ./frontend
         run: |
@@ -44,7 +44,6 @@ jobs:
   runner2:
     runs-on: [self-hosted, run2]
     environment: DLG
-    needs: runner1 # Ensures runner2 runs after runner1 completes
     env:
       D_USER: ${{ secrets.DUSER }}
       D_PASS: ${{ secrets.DPASS }}
@@ -57,8 +56,8 @@ jobs:
           docker pull koak/ak-adv-images:backend
       - name: Deploy containers
         run: |
-          docker rm -f cfrontend || true
-          docker rm -f cbackend || true
+          docker rm cfrontend || true
+          docker rm cbackend || true
           docker run -d -p 8080:80 --name cfrontend koak/ak-adv-images:frontend
           docker run -d -p 5000:5000 --name cbackend koak/ak-adv-images:backend
           docker logout
