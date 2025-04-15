@@ -16,8 +16,7 @@ jobs:
       D_USER: ${{ secrets.DUSER }}
       D_PASS: ${{ secrets.DPASS }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Build frontend image
         working-directory: ./frontend
         run: |
@@ -48,6 +47,7 @@ jobs:
       D_USER: ${{ secrets.DUSER }}
       D_PASS: ${{ secrets.DPASS }}
     steps:
+      - uses: actions/checkout@v4
       - name: Login to Docker Hub
         run: echo "${{ env.D_PASS }}" | docker login -u "${{ env.D_USER }}" --password-stdin
       - name: Pull images from Docker Hub
