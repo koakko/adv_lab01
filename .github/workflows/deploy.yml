@@ -1,0 +1,64 @@
+name: Advance Lab for Github Action
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  runner1:
+    runs-on: [self-hosted, run1]
+    environment: DLG
+    env:
+      D_USER: ${{ secrets.DUSER }}
+      D_PASS: ${{ secrets.DPASS }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # Updated to latest version
+      - name: Build frontend image
+        working-directory: ./frontend
+        run: |
+          docker rmi fimg || true
+          docker rmi koak/ak-adv-images:frontend || true
+          docker build -t fimg .
+      - name: Build backend image
+        working-directory: ./backend
+        run: |
+          docker rmi bimg || true
+          docker rmi koak/ak-adv-images:backend || true
+          docker build -t bimg .
+      - name: Login to Docker Hub
+        run: echo "${{ env.D_PASS }}" | docker login -u "${{ env.D_USER }}" --password-stdin
+      - name: Push to Docker Hub
+        run: |
+          docker tag fimg koak/ak-adv-images:frontend
+          docker push koak/ak-adv-images:frontend
+          docker tag bimg koak/ak-adv-images:backend
+          docker push koak/ak-adv-images:backend
+          docker rmi fimg koak/ak-adv-images:frontend bimg koak/ak-adv-images:backend || true
+          docker logout
+
+  runner2:
+    runs-on: [self-hosted, run2]
+    environment: DLG
+    needs: runner1 # Ensures runner2 runs after runner1 completes
+    env:
+      D_USER: ${{ secrets.DUSER }}
+      D_PASS: ${{ secrets.DPASS }}
+    steps:
+      - name: Login to Docker Hub
+        run: echo "${{ env.D_PASS }}" | docker login -u "${{ env.D_USER }}" --password-stdin
+      - name: Pull images from Docker Hub
+        run: |
+          docker pull koak/ak-adv-images:frontend
+          docker pull koak/ak-adv-images:backend
+      - name: Deploy containers
+        run: |
+          docker rm -f cfrontend || true
+          docker rm -f cbackend || true
+          docker run -d -p 8080:80 --name cfrontend koak/ak-adv-images:frontend
+          docker run -d -p 5000:5000 --name cbackend koak/ak-adv-images:backend
+          docker logout
